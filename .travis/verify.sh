@@ -2,46 +2,52 @@
 
 set -o errexit
 EX_DM='example.com' 
+LSWS_HOST="${LSWS_HOST:-litespeed}"
+LSWS_HTTP_PORT="${LSWS_HTTP_PORT:-80}"
+LSWS_HTTPS_PORT="${LSWS_HTTPS_PORT:-443}"
+LSWS_ADMIN_PORT="${LSWS_ADMIN_PORT:-7080}"
+PHPMYADMIN_HOST="${PHPMYADMIN_HOST:-phpmyadmin}"
+PHPMYADMIN_PORT="${PHPMYADMIN_PORT:-80}"
 
 install_demo(){
     ./bin/demosite.sh
 }
 
 verify_lsws(){
-    curl -sIk http://localhost:7080/ | grep -i LiteSpeed
+    docker compose exec -T litespeed curl -sIk "http://${LSWS_HOST}:${LSWS_ADMIN_PORT}/" | grep -i LiteSpeed
     if [ ${?} = 0 ]; then
-        echo '[O]  https://localhost:7080/'
+        echo "[O]  http://${LSWS_HOST}:${LSWS_ADMIN_PORT}/"
     else
-        echo '[X]  https://localhost:7080/'
+        echo "[X]  http://${LSWS_HOST}:${LSWS_ADMIN_PORT}/"
         exit 1
     fi          
 }    
 
 verify_page(){
-    curl -sIk http://localhost:80/ | grep -i WordPress
+    docker compose exec -T litespeed curl -sIk "http://${LSWS_HOST}:${LSWS_HTTP_PORT}/" | grep -i WordPress
     if [ ${?} = 0 ]; then
-        echo '[O]  http://localhost:80/' 
+        echo "[O]  http://${LSWS_HOST}:${LSWS_HTTP_PORT}/" 
     else
-        echo '[X]  http://localhost:80/'
-        curl -sIk http://localhost:80/
+        echo "[X]  http://${LSWS_HOST}:${LSWS_HTTP_PORT}/"
+        docker compose exec -T litespeed curl -sIk "http://${LSWS_HOST}:${LSWS_HTTP_PORT}/"
         exit 1
     fi        
-    curl -sIk https://localhost:443/ | grep -i WordPress
+    docker compose exec -T litespeed curl -sIk "https://${LSWS_HOST}:${LSWS_HTTPS_PORT}/" | grep -i WordPress
     if [ ${?} = 0 ]; then
-        echo '[O]  https://localhost:443/' 
+        echo "[O]  https://${LSWS_HOST}:${LSWS_HTTPS_PORT}/" 
     else
-        echo '[X]  https://localhost:443/'
-        curl -sIk https://localhost:443/
+        echo "[X]  https://${LSWS_HOST}:${LSWS_HTTPS_PORT}/"
+        docker compose exec -T litespeed curl -sIk "https://${LSWS_HOST}:${LSWS_HTTPS_PORT}/"
         exit 1
     fi       
 }
 
 verify_phpadmin(){
-    curl -sIk http://localhost:8080/ | grep -i phpMyAdmin
+    docker compose exec -T litespeed curl -sIk "http://${PHPMYADMIN_HOST}:${PHPMYADMIN_PORT}/" | grep -i phpMyAdmin
     if [ ${?} = 0 ]; then
-        echo '[O]  http://localhost:8080/' 
+        echo "[O]  http://${PHPMYADMIN_HOST}:${PHPMYADMIN_PORT}/" 
     else
-        echo '[X]  http://localhost:8080/'
+        echo "[X]  http://${PHPMYADMIN_HOST}:${PHPMYADMIN_PORT}/"
         exit 1
     fi     
 }
@@ -51,12 +57,12 @@ verify_add_vh_wp(){
     bash bin/domain.sh --add "${EX_DM}"
     bash bin/database.sh --domain "${EX_DM}"
     bash bin/appinstall.sh --app wordpress --domain "${EX_DM}"
-    curl -sIk http://${EX_DM}:80/ --resolve ${EX_DM}:80:127.0.0.1 | grep -i WordPress
+    docker compose exec -T litespeed curl -sIk "http://${LSWS_HOST}:${LSWS_HTTP_PORT}/" -H "Host: ${EX_DM}" | grep -i WordPress
     if [ ${?} = 0 ]; then
-        echo "[O]  http://${EX_DM}:80/"
+        echo "[O]  http://${EX_DM}:${LSWS_HTTP_PORT}/"
     else
-        echo "[X]  http://${EX_DM}:80/"
-        curl -sIk http://${EX_DM}:80/
+        echo "[X]  http://${EX_DM}:${LSWS_HTTP_PORT}/"
+        docker compose exec -T litespeed curl -sIk "http://${LSWS_HOST}:${LSWS_HTTP_PORT}/" -H "Host: ${EX_DM}"
         exit 1
     fi
 }
@@ -78,21 +84,21 @@ verify_owasp(){
     bash bin/webadmin.sh --upgrade 2>&1 /dev/null
     echo 'Enabling OWASP'
     bash bin/webadmin.sh --mod-secure enable
-    curl -sIk http://localhost:80/phpinfo.php | awk '/HTTP/ && /403/'
+    docker compose exec -T litespeed curl -sIk "http://${LSWS_HOST}:${LSWS_HTTP_PORT}/phpinfo.php" | awk '/HTTP/ && /403/'
     if [ ${?} = 0 ]; then
         echo '[O]  OWASP enable' 
     else
         echo '[X]  OWASP enable'
-        curl -sIk http://localhost:80/phpinfo.php | awk '/HTTP/ && /403/'
+        docker compose exec -T litespeed curl -sIk "http://${LSWS_HOST}:${LSWS_HTTP_PORT}/phpinfo.php" | awk '/HTTP/ && /403/'
         exit 1
     fi
     bash bin/webadmin.sh --mod-secure disable
-    curl -sIk http://localhost:80/phpinfo.php | grep -i WordPress
+    docker compose exec -T litespeed curl -sIk "http://${LSWS_HOST}:${LSWS_HTTP_PORT}/phpinfo.php" | grep -i WordPress
     if [ ${?} = 0 ]; then
         echo '[O]  OWASP disable' 
     else
         echo '[X]  OWASP disable'
-        curl -sIk http://localhost:80/phpinfo.php
+        docker compose exec -T litespeed curl -sIk "http://${LSWS_HOST}:${LSWS_HTTP_PORT}/phpinfo.php"
         exit 1
     fi       
 }

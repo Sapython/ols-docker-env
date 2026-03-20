@@ -174,7 +174,7 @@ bash bin/appinstall.sh [-A, --app] wordpress [-D, --domain] example.com
 
 ### Connecting to Redis
 
-Go to [WordPress > LSCache Plugin > Cache > Object](https://docs.litespeedtech.com/lscache/lscwp/cache/#object-tab), select **Redis** method and input `redis` to the Host field.
+Go to [WordPress > LSCache Plugin > Cache > Object](https://docs.litespeedtech.com/lscache/lscwp/cache/#object-tab), select **Redis** method and set host and port from your `.env` values: `REDIS_HOST` and `REDIS_PORT`.
 
 ### Install ACME
 
@@ -285,7 +285,13 @@ bash bin/webadmin.sh [-M, --mod-secure] disable
 >
 ### Accessing the Database
 
-After installation, you can use phpMyAdmin to access the database by visiting `http://127.0.0.1:8080` or `https://127.0.0.1:8443`. The default username is `root`, and the password is the same as the one you supplied in the `.env` file.
+After installation, this setup does not publish service ports on the host. Access phpMyAdmin from inside the Docker network using `PHPMYADMIN_HOST` and `PHPMYADMIN_PORT` from `.env`, for example:
+
+```bash
+docker compose exec litespeed curl -sI "http://${PHPMYADMIN_HOST}:${PHPMYADMIN_PORT}/"
+```
+
+The default username is `root`, and the password is the same as the one you supplied in the `.env` file.
 
 ## Customization
 

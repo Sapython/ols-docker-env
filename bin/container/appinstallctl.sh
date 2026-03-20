@@ -8,7 +8,10 @@ WWW_UID=''
 WWW_GID=''
 WPCONSTCONF=''
 PUB_IP=$(curl -s http://checkip.amazonaws.com)
-DB_HOST='mysql'
+DB_HOST="${MYSQL_HOST:-mysql}"
+DB_PORT="${MYSQL_PORT:-3306}"
+LSCACHE_REDIS_HOST="${REDIS_HOST:-redis}"
+LSCACHE_REDIS_PORT="${REDIS_PORT:-6379}"
 PLUGINLIST="litespeed-cache.zip"
 THEME='twentytwenty'
 EPACE='        '
@@ -95,7 +98,7 @@ set_vh_docroot(){
 check_sql_native(){
 	local COUNTER=0
 	local LIMIT_NUM=100
-	until [ "$(curl -v mysql:3306 2>&1 | grep -i 'native\|Connected')" ]; do
+	until [ "$(curl -v ${DB_HOST}:${DB_PORT} 2>&1 | grep -i 'native\|Connected')" ]; do
 		echo "Counter: ${COUNTER}/${LIMIT_NUM}"
 		COUNTER=$((COUNTER+1))
 		if [ ${COUNTER} = 10 ]; then
@@ -152,8 +155,8 @@ set_lscache(){
     if [ -f ${WPCONSTCONF} ]; then
         sed -ie 's/"object": .*"/"object": '\"true\"'/g' ${WPCONSTCONF}
 		sed -ie 's/"object-kind": .*"/"object-kind": '\"true\"'/g' ${WPCONSTCONF}
-		sed -ie 's/"object-host": .*"/"object-host": '\"redis\"'/g' ${WPCONSTCONF}
-		sed -ie 's/"object-port": .*"/"object-port": '\"6379\"'/g' ${WPCONSTCONF}
+		sed -ie 's/"object-host": .*"/"object-host": '\"'"${LSCACHE_REDIS_HOST}"'\"'/g' ${WPCONSTCONF}
+		sed -ie 's/"object-port": .*"/"object-port": '\"'"${LSCACHE_REDIS_PORT}"'\"'/g' ${WPCONSTCONF}
     fi
     THEME_PATH="${VH_DOC_ROOT}/wp-content/themes/${THEME}"
     if [ ! -f ${THEME_PATH}/functions.php ]; then
