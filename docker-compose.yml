@@ -41,6 +41,8 @@ services:
     image: phpmyadmin/phpmyadmin:${PHPMYADMIN_VERSION}
     env_file:
       - .env
+    command: >
+      /bin/sh -c "echo 'ServerName ${PHPMYADMIN_SERVER_NAME:-localhost}' > /etc/apache2/conf-enabled/servername.conf && exec apache2-foreground"
     expose:
       - "${PHPMYADMIN_PORT:-80}"
     environment:
