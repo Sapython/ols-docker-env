@@ -28,11 +28,11 @@ services:
       - ./sites:/var/www/vhosts/
       - ./acme:/root/.acme.sh/
       - ./logs:/usr/local/lsws/logs/
-    # expose:
-    ports:
-      - "${LSWS_ADMIN_PORT:-7080}:${LSWS_ADMIN_PORT:-7080}"
+    expose:
       - "${LSWS_HTTP_PORT:-80}"
       - "${LSWS_HTTPS_PORT:-443}"
+    ports:
+      - "${LSWS_ADMIN_PORT:-7080}:${LSWS_ADMIN_PORT:-7080}"
     restart: always
     environment:
       TZ: ${TimeZone}
