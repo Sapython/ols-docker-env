@@ -31,7 +31,6 @@ services:
     expose:
       - "${LSWS_HTTP_PORT:-80}"
       - "${LSWS_HTTPS_PORT:-443}"
-      - "${LSWS_ADMIN_PORT:-7080}"
     ports:
       - "${LSWS_ADMIN_PORT:-7080}:${LSWS_ADMIN_PORT:-7080}"
     restart: always
