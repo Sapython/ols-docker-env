@@ -155,8 +155,8 @@ set_lscache(){
     if [ -f ${WPCONSTCONF} ]; then
         sed -ie 's/"object": .*"/"object": '\"true\"'/g' ${WPCONSTCONF}
 		sed -ie 's/"object-kind": .*"/"object-kind": '\"true\"'/g' ${WPCONSTCONF}
-		sed -ie 's/"object-host": .*"/"object-host": '\"'"${LSCACHE_REDIS_HOST}"'\"'/g' ${WPCONSTCONF}
-		sed -ie 's/"object-port": .*"/"object-port": '\"'"${LSCACHE_REDIS_PORT}"'\"'/g' ${WPCONSTCONF}
+		sed -i "s|\"object-host\": .*|\"object-host\": \"$LSCACHE_REDIS_HOST\",|g" ${WPCONSTCONF}
+		sed -i "s|\"object-port\": .*|\"object-port\": \"$LSCACHE_REDIS_PORT\",|g" ${WPCONSTCONF}
     fi
     THEME_PATH="${VH_DOC_ROOT}/wp-content/themes/${THEME}"
     if [ ! -f ${THEME_PATH}/functions.php ]; then
